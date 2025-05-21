@@ -1,14 +1,25 @@
 {
-  "name": "dbrjs-csp-test",
+  "name": "batch-scanner-poc",
   "version": "1.0.0",
-  "description": "",
+  "description": "Batch barcode scanner PoC",
   "main": "index.js",
   "scripts": {
+    "start": "http-server ./public -p $PORT -a 0.0.0.0 --cors",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.21.2"
-  }
+    "express": "^4.21.2",
+    "http-server": "^14.1.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AslamAadam/Pharma-batch-scanner-poc.git"
+  },
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/AslamAadam/Pharma-batch-scanner-poc/issues"
+  },
+  "homepage": "https://github.com/AslamAadam/Pharma-batch-scanner-poc#readme"
 }
