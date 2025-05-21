@@ -1,0 +1,64 @@
+{
+  "CaptureVisionTemplates": [
+    {
+      "Name": "Panorama_CVR",
+      "OutputOriginalImage": 1,
+      "ImageROIProcessingNameArray": ["TA_0"],
+      "Timeout": 1000,
+      "MinImageCaptureInterval":500,
+      "MaxParallelTasks": 1
+    }
+  ],
+  "TargetROIDefOptions": [
+    {
+      "Name": "TA_0",
+      "TaskSettingNameArray": ["BR_0"]
+    }
+  ],
+  "BarcodeReaderTaskSettingOptions": [
+    {
+      "Name": "BR_0",
+      "ExpectedBarcodesCount": 9999,
+      "LocalizationModes": [
+        {
+          "Mode": "LM_CONNECTED_BLOCKS"
+        }
+      ],
+      "SectionImageParameterArray": [
+        {
+          "Section": "REGION_PREDETECTION",
+          "ImageParameterName": "IP_0"
+        },
+        {
+          "Section": "BARCODE_LOCALIZATION",
+          "ImageParameterName": "IP_0"
+        },
+        {
+          "Section": "BARCODE_DECODING",
+          "ImageParameterName": "IP_0"
+        }
+      ],
+      "StartSection": "REGION_PREDETECTION"
+    }
+  ],
+  "ImageParameterOptions": [
+    {
+      "Name": "IP_0",
+      "BinarizationModes": [
+        {
+          "Mode": "BM_LOCAL_BLOCK",
+          "BlockSizeX": 0,
+          "BlockSizeY": 0,
+          "EnableFillBinaryVacancy": 0
+        }
+      ],
+      "TextureDetectionModes":[
+        {
+           "Mode":"TDM_SKIP"
+        }
+      ],
+      "IfEraseTextZone": 0,
+      "ScaleDownThreshold": 5000
+    }
+  ]
+}

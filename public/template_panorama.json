@@ -1,0 +1,30 @@
+{
+  "PanoramaSettings": [
+    {
+      "Name": "Panorama",
+      "MaxMemorySize": 4096,
+      "StitchMode": 0,
+      "ScanPathMode": {
+        "MoveAround": 1
+      },
+      "PatternAnalysisMode": [
+        {
+          "Mode": "LAM_SKIP"
+        }
+      ],
+      "HasDuplicateCode": 1,
+      "OutputLandMarkType": [ "LT_BARCODE", "LT_LABEL" ],
+      "PreviewImageSize": {
+        "ScaleRatio": 20,
+        "MaxSideLength:": 0
+      },
+      "InternalProperties": {
+          "EnableOutputPreviewPanorama": 1,
+          "EnableFinalResultNormalization": 0,
+          "EnableGlobalLogOutputtingFlag": 0,
+          "CanvasImageScalePercent": 50
+      },
+      "CaptureVisionTemplateName": "Panorama_CVR"
+    }
+  ]
+}

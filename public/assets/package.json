@@ -1,0 +1,19 @@
+{
+  "name": "@dynamsoft/dynamsoft-barcode-reader-bundle",
+  "version": "10.4.3100-dev-20250305164101",
+  "sideEffects": false,
+  "publishConfig": {
+    "registry": "https://npm.scannerproxy.com:802/",
+    "tag": "latest"
+  },
+  "author": {
+    "name": "Dynamsoft",
+    "url": "https://www.dynamsoft.com"
+  },
+  "maintainers": [
+    {
+      "name": "Dynamsoft",
+      "email": "support@dynamsoft.com"
+    }
+  ]
+}

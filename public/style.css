@@ -1,0 +1,191 @@
+/* style.css */
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f5f5f5;
+    color: #333; /* Default text color */
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+h3 {
+    margin-bottom: 10px;
+    color: #555;
+}
+
+#scanner-container,
+#actions,
+#invoice-input-container, /* Added */
+#prescription-text-area {  /* Added */
+    margin: 20px auto; /* Centering blocks */
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    max-width: 700px; /* Consistent max-width for content blocks */
+}
+
+#camera-container {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    height: 480px;
+    margin: 0 auto 15px auto; /* Added bottom margin */
+    border: 1px solid #ccc;
+    background-color: #000;
+    overflow: hidden;
+}
+
+#camera {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#text-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* --- Styles for Invoice Input --- */
+#invoice-input-container {
+    text-align: center; /* Center label and input */
+}
+
+#invoice-input-container label {
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+#invoice-id-input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+}
+/* --- End of Invoice Input Styles --- */
+
+
+#actions {
+    text-align: center; /* Center buttons */
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    margin: 5px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    transition: background-color 0.2s ease-in-out; /* Smooth hover effect */
+}
+
+button:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+#notifications {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #e9ecef;
+    border-radius: 5px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#notifications p {
+    margin: 5px 0;
+    word-break: break-word; /* Prevent long strings from breaking layout */
+}
+
+#prescription-text-area {
+    background-color: #f9f9f9; /* Light grey for this area */
+}
+
+#ocr-output {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: monospace; /* Good for pre-formatted text */
+    padding: 5px;
+    border: 1px dashed #ddd;
+    min-height: 50px; /* Ensure it has some height even when empty */
+}
+
+
+/* --- Bounding Box Styles --- */
+.barcode-region {
+    position: absolute;
+    border: 2px solid limegreen;
+    background-color: rgba(50, 205, 50, 0.2);
+    color: black;
+    font-size: 10px;
+    padding: 1px 2px;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    z-index: 10;
+}
+
+.detected-object-region {
+    position: absolute;
+    border-width: 3px;
+    border-style: solid;
+    /* borderColor is set by JS */
+    background-color: rgba(255, 255, 255, 0.05);
+    box-sizing: border-box;
+    z-index: 11;
+    pointer-events: none;
+}
+
+.object-label {
+    position: absolute;
+    top: -20px;
+    left: 0px;
+    color: white;
+    padding: 2px 5px;
+    font-size: 11px;
+    font-weight: bold;
+    white-space: nowrap;
+    border-radius: 3px;
+    text-shadow: 1px 1px 1px black;
+    /* backgroundColor is set by JS */
+}
+
+.detected-text-region {
+    position: absolute;
+    border: 1px dashed #FF00FF; /* Magenta */
+    background-color: rgba(255, 0, 255, 0.05);
+    box-sizing: border-box;
+    z-index: 9;
+    pointer-events: none;
+}
+
+.text-label {
+    color: #FF00FF; /* Magenta to match border, or choose another */
+    font-size: 10px;
+    font-weight: bold;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden;
+    white-space: nowrap;
+    text-shadow: 0 0 2px white;
+}

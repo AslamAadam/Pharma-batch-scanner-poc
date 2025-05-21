@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmaceutical Inventory Scanner PoC</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <h1>Pharmaceutical Inventory Scanner PoC</h1>
+
+        <div id="scanner-ui-container" style="width: 640px; height: 480px; margin: 10px auto; border: 1px solid #ccc; position: relative; background-color: #333;">
+        <!-- The DMCamera instance will likely append its video wrapper here (camera._coreWrapper) -->
+        <!-- Your custom overlay for red/green barcode boxes -->
+        <div id="text-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index: 10;"></div>
+    </div>
+
+    <!-- Controls for the scanner -->
+     <button id="btn-start">Start / Pause Scan</button>
+     <button id="btn-stop" style="margin-left:8px;">Stop Scan</button>
+
+       <div id="actions" style="text-align: center;">
+            <button id="send-to-sheets">Send to Google Sheets</button>
+            <button id="verify-items">Verify Items</button>
+        </div>
+
+    <!-- Your PoC specific controls -->
+    <div id="poc-controls" style="max-width: 700px; margin: 20px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        <div id="invoice-input-container" style="margin-bottom: 15px; text-align:center;">
+            <label for="invoice-id-input" style="margin-right: 10px; font-weight: bold;">Invoice ID:</label>
+            <input type="text" id="invoice-id-input" value="INV001" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+
+        
+    <div id="notifications" style="max-width: 700px; margin: 20px auto; padding: 10px; background-color: #e9ecef; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-height: 150px; overflow-y: auto;">
+        <!-- Notifications will be appended here by script.js -->
+    </div>
+
+    <div id="prescription-text-area" style="max-width: 700px; margin: 20px auto; padding: 10px; background-color: #f9f9f9; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); min-height: 100px;">
+        <h3>Detected Text (OCR - if Vision API enabled):</h3>
+        <pre id="ocr-output" style="white-space: pre-wrap; word-wrap: break-word;">OCR Disabled in this version.</pre>
+    </div>
+      <canvas id="cvs-result" style="width:100%;height:50svh;object-fit:contain;background:rgba(255,255,255,0.7);"></canvas>
+
+
+    <script src="./eruda.min.js"></script>
+    <script>
+      // a console for debugging, removable
+      eruda.init();
+    </script>
+    
+    <script src="assets/dynamsoft-barcode-reader-bundle@10.4.3100/dist/dbr.bundle.js"></script>
+      <!-- <script src="https://cdn.jsdelivr.net/npm/dynamsoft-barcode-reader-bundle@10.4.3100/dist/dbr.bundle.js"></script> -->
+    <script src="dm-camera.js?v=20250417"></script> 
+    <script src="dps-script.js?v=20250417.3"></script>
+  </body>
+</html>
