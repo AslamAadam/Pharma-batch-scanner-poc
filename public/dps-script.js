@@ -3,7 +3,7 @@ const notifications = document.getElementById('notifications');
 const textOverlay = document.getElementById('text-overlay'); // For our custom red/green barcode boxes
 const barcodeScanCountElement = document.getElementById('barcode-scan-count');
 const resultCtx = document.getElementById('cvs-result').getContext('2d');
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby_7yH-CqjEiRda7NyDJs1_eeD6duZ3y_lRT9T9_ZTzWxkvdCHoNcFhPXYDO9s40f1Ucg/exec"; 
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzP6GIxwkvNgOY_t-RLoGCj3VR-gjQ6KYILcbZerSLgT8X2IoSGFyaxCRDNMphWpHAHBQ/exec"; 
 const apiKey_Vision = null;                                     // <<< SET TO YOUR REAL GOOGLE VISION KEY TO ENABLE OCR, OR KEEP NULL
 const DYNAMSOFT_LICENSE_KEY = "DLS2eyJoYW5kc2hha2VDb2RlIjoiMTA0MDEwMTA3LVRYbFhaV0pRY205cSIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21kbHMuZHluYW1zb2Z0b25saW5lLmNvbSIsIm9yZ2FuaXphdGlvbklEIjoiMTA0MDEwMTA3Iiwic3RhbmRieVNlcnZlclVSTCI6Imh0dHBzOi8vc2Rscy5keW5hbXNvZnRvbmxpbmUuY29tIiwiY2hlY2tDb2RlIjozOTEyNzM1NDh9";  
 
@@ -705,13 +705,18 @@ function setupPocEventListeners() {
 
             if (!invoiceID) { appendNotification("Please enter an Invoice ID to verify.", "orange"); return; }
             if (!SCRIPT_URL || SCRIPT_URL.startsWith("YOUR_")) { appendNotification("Apps Script URL not configured.", "red"); return; }
+            
+            if (detectedBarcodes.length === 0) {
+            appendNotification("No barcodes currently scanned to verify.", "orange");
+            return;
+        }
 
             appendNotification(`Verifying items for Invoice ${invoiceID}...`, "blue");
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     // No Content-Type header for simpler GAS CORS
-                    body: JSON.stringify({ action: "verifyItems", invoiceID: invoiceID })
+                    body: JSON.stringify({ action: "verifyItems", invoiceID: invoiceID, barcodesToVerify: detectedBarcodes })
                 });
                 if (!response.ok) {
                      const errorText = await response.text();
