@@ -3,7 +3,7 @@ const notifications = document.getElementById('notifications');
 const textOverlay = document.getElementById('text-overlay'); // For our custom red/green barcode boxes
 const barcodeScanCountElement = document.getElementById('barcode-scan-count');
 const resultCtx = document.getElementById('cvs-result').getContext('2d');
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzP6GIxwkvNgOY_t-RLoGCj3VR-gjQ6KYILcbZerSLgT8X2IoSGFyaxCRDNMphWpHAHBQ/exec"; 
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwOVUTZDPPkl0d7cpc8Rq5p4cXf5hkxVd13gS3sr1xK1I1uVg7ZWRZmTSAlDEUj2mqTrA/exec"; 
 const apiKey_Vision = null;                                     // <<< SET TO YOUR REAL GOOGLE VISION KEY TO ENABLE OCR, OR KEEP NULL
 const DYNAMSOFT_LICENSE_KEY = "DLS2eyJoYW5kc2hha2VDb2RlIjoiMTA0MDEwMTA3LVRYbFhaV0pRY205cSIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21kbHMuZHluYW1zb2Z0b25saW5lLmNvbSIsIm9yZ2FuaXphdGlvbklEIjoiMTA0MDEwMTA3Iiwic3RhbmRieVNlcnZlclVSTCI6Imh0dHBzOi8vc2Rscy5keW5hbXNvZnRvbmxpbmUuY29tIiwiY2hlY2tDb2RlIjozOTEyNzM1NDh9";  
 
@@ -445,23 +445,37 @@ async function pocAnalyzeAndDrawLoop() {
                     }
 
                     stitchedLandmarks.forEach(landmark => {
-                        // Determine the color for the bounding box (e.g., green if reported, red if not)
-                        let isReportedBasedOnInventory = false; // Default to not reported
-                        const inventoryItem = inventoryData.find(item => item.ItemID === landmark.text);
-                        if (inventoryItem && inventoryItem.Reported && inventoryItem.Reported.toString().toLowerCase() === "yes") {
-                            isReportedBasedOnInventory = true;
-                        }
+                        let boxStyle = { 
+                            fill: 'rgba(50, 205, 50, 0.3)',  // Default style: Reported (Green)
+                            stroke: 'limegreen',
+                            textFill: 'darkgreen'         // Color for the barcode text
+                        };
 
-                        // Override color if item is in lastVerificationResult.nonReportedItems
-                        let finalDrawColorIsReported = isReportedBasedOnInventory;
-                        if (lastVerificationResult.nonReportedItems && 
-                            lastVerificationResult.nonReportedItems.includes(landmark.text)) {
-                            finalDrawColorIsReported = false; // Force red (not reported) if in the verification list
+                        // Check if lastVerificationResult and its arrays exist before trying to access them
+                        if (lastVerificationResult) {
+                            if (lastVerificationResult.notInInventory && 
+                                lastVerificationResult.notInInventory.includes(landmark.text)) {
+                                // Item was not found in the master inventory at all
+                                boxStyle = { 
+                                    fill: 'rgba(220, 53, 69, 0.4)',  // Distinct Red for "Not in Inventory"
+                                    stroke: '#dc3545',               // Darker red border
+                                    textFill: '#b02a37'              // Dark red text
+                                };
+                            } else if (lastVerificationResult.notReportedButInInventory && 
+                                       lastVerificationResult.notReportedButInInventory.includes(landmark.text)) {
+                                // Item is in inventory, but its "Reported" status is not "Yes"
+                                boxStyle = { 
+                                    fill: 'rgba(255, 193, 7, 0.4)', // Orange/Yellow for "In Inv, Not Reported"
+                                    stroke: '#ffc107',              // Darker orange/yellow border
+                                    textFill: '#c69500'             // Dark orange/yellow text
+                                };
+                            }
+                            // If neither of the above, it remains the default green 'reported' style
                         }
 
                         // Set drawing styles based on whether it's reported
-                        resultCtx.fillStyle = finalDrawColorIsReported ? 'rgba(50, 205, 50, 0.3)' : 'rgba(255, 0, 0, 0.3)'; // Fill color
-                        resultCtx.strokeStyle = finalDrawColorIsReported ? 'limegreen' : 'red'; // Border color
+                       resultCtx.fillStyle = boxStyle.fill;
+                        resultCtx.strokeStyle = boxStyle.stroke; 
                         resultCtx.lineWidth = 3; // Make lines a bit thicker for visibility
 
                         const p = landmark.location.points; // These coordinates are for the stitched image
@@ -477,7 +491,7 @@ async function pocAnalyzeAndDrawLoop() {
                         resultCtx.stroke(); // Draw the border
 
                         // Optional: Draw the barcode text near the box on cvs-result
-                        resultCtx.fillStyle = finalDrawColorIsReported ? 'darkgreen' : 'darkred'; // Text color
+                        resultCtx.fillStyle = boxStyle.textFill; // Text color
                         resultCtx.font = 'bold 16px Arial'; // Adjust font size as needed
                         // Position text slightly above the first point of the barcode
                         resultCtx.fillText(landmark.text.substring(0, 15), p[0].x, p[0].y - 7); 
@@ -715,7 +729,6 @@ function setupPocEventListeners() {
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    // No Content-Type header for simpler GAS CORS
                     body: JSON.stringify({ action: "verifyItems", invoiceID: invoiceID, barcodesToVerify: detectedBarcodes })
                 });
                 if (!response.ok) {
@@ -723,16 +736,29 @@ function setupPocEventListeners() {
                      throw new Error(`Verification request failed (${response.status}): ${errorText}`);
                 }
                 const resultData = await response.json();
-                lastVerificationResult = resultData; // Store for potential use
-                appendNotification(resultData.message, "blue");
-
-                if (resultData.nonReportedItems && resultData.nonReportedItems.length > 0) {
-                    appendNotification(`Non-Reported/Not Found: ${resultData.nonReportedItems.join(", ")}`, "orange");
-                } else {
-                    appendNotification("All scanned items for this invoice are reported or found.", "green");
+                lastVerificationResult = resultData; 
+                if (resultData.message) {
+                    appendNotification(resultData.message, "blue"); 
                 }
-                // Call highlighting after verification, acts on currently displayed boxes (if any)
-                highlightNonReportedItemsOnOverlay(resultData.nonReportedItems || []);
+                let problemsFound = false;
+
+                if (resultData.notInInventory && resultData.notInInventory.length > 0) {
+                    appendNotification(`CRITICAL - ITEMS NOT FOUND IN INVENTORY: ${resultData.notInInventory.join(", ")}`, "red"); // Use a strong error color
+                    problemsFound = true;
+                }
+
+                if (resultData.notReportedButInInventory && resultData.notReportedButInInventory.length > 0) {
+                    appendNotification(`WARNING - Items in Inventory but NOT 'Reported=Yes': ${resultData.notReportedButInInventory.join(", ")}`, "orange"); // Warning color
+                    problemsFound = true;
+                }
+                if (barcodesToVerify.length > 0 && !problemsFound) {
+                    // This condition implies all items in barcodesToVerify were in resultData.reportedItems
+                    appendNotification("All items in the current batch are correctly reported.", "green");
+                } else if (barcodesToVerify.length === 0) {
+                    // This case should ideally be caught before sending to GAS, but good to handle
+                    appendNotification("No items were submitted in the current batch for verification.", "grey");
+                }
+
             } catch (error) {
                 console.error("Fetch error in 'Verify Items':", error);
                 appendNotification(`Error verifying items: ${error.message}`, "red");
@@ -757,30 +783,38 @@ function drawBarcodesOnCanvasOverlay(landmarksArray, cameraInstance) {
         try {
             const barcodeValue = landmark.text;
             const location = landmark.location;
+            const p = location?.points; 
 
-            if (!barcodeValue || !location || !location.points || location.points.length !== 4) {
+            if (!barcodeValue || !p || p.length !== 4) {
                 return; // Skip incomplete landmarks
             }
 
-            // Determine color based on inventory (same logic as before)
-            let isReported = false;
-            let itemFoundInInventory = false;
-            if (Array.isArray(inventoryData) && inventoryData.length > 0) {
-                const inventoryItem = inventoryData.find(item => item.ItemID === barcodeValue);
-                if (inventoryItem) {
-                    itemFoundInInventory = true;
-                    if (inventoryItem.Reported && inventoryItem.Reported.toString().toLowerCase() === "yes") {
-                        isReported = true;
-                    }
+             let boxStyle = { 
+                fill: 'rgba(50, 205, 50, 0.3)',  // Default: Reported (Green)
+                stroke: 'limegreen'
+                // Text on live overlay can be cluttered, so textFill is optional here
+            };
+
+            if (lastVerificationResult) { // Check if verification has even happened
+                if (lastVerificationResult.notInInventory && 
+                    lastVerificationResult.notInInventory.includes(barcodeValue)) {
+                    boxStyle = { 
+                        fill: 'rgba(220, 53, 69, 0.4)',  // Not in Inventory (Red)
+                        stroke: '#dc3545'
+                    };
+                } else if (lastVerificationResult.notReportedButInInventory && 
+                           lastVerificationResult.notReportedButInInventory.includes(barcodeValue)) {
+                    boxStyle = { 
+                        fill: 'rgba(255, 193, 7, 0.4)', // In Inventory, Not Reported (Orange/Yellow)
+                        stroke: '#ffc107'
+                    };
                 }
             }
-            // Note: appendNotification and detectedBarcodes.push are still in processPanoramaLandmarksForPoC
 
-            videoOverlayCtxPoc.fillStyle = isReported ? 'rgba(50, 205, 50, 0.3)' : 'rgba(255, 0, 0, 0.3)'; // Semi-transparent fill
-            videoOverlayCtxPoc.strokeStyle = isReported ? 'limegreen' : 'red'; // Solid border
+            videoOverlayCtxPoc.fillStyle = boxStyle.fill;
+            videoOverlayCtxPoc.strokeStyle = boxStyle.stroke;
             videoOverlayCtxPoc.lineWidth = 2; // A bit thicker lines
 
-            const p = location.points; // These are the direct coordinates from the SDK
 
             videoOverlayCtxPoc.beginPath();
             videoOverlayCtxPoc.moveTo(p[0].x, p[0].y);
@@ -800,26 +834,7 @@ function drawBarcodesOnCanvasOverlay(landmarksArray, cameraInstance) {
             console.error("Error drawing one landmark on canvas overlay:", loopError, landmark);
         }
     });
-}
-
-// --- PoC: Highlight non-reported items on the overlay ---
-function highlightNonReportedItemsOnOverlay(nonReportedBarcodes) {
-    if (!textOverlay) return;
-    const overlayBarcodeDivs = Array.from(textOverlay.getElementsByClassName('barcode-region'));
-    overlayBarcodeDivs.forEach(div => {
-        const barcodeValue = div.dataset.barcode;
-        if (barcodeValue) {
-            const isNonReported = nonReportedBarcodes.some(nrItem =>
-                barcodeValue === nrItem || (typeof nrItem === 'string' && nrItem.startsWith(barcodeValue + " ("))
-            );
-            // This will re-color based on the verification result.
-            // The real-time coloring happens in processPanoramaLandmarksForPoC.
-            div.style.borderColor = isNonReported ? 'red' : 'limegreen';
-            div.style.backgroundColor = isNonReported ? 'rgba(255, 0, 0, 0.3)' : 'rgba(50, 205, 50, 0.2)';
-        }
-    });
-    // appendNotification("Non-reported item highlighting updated after verification.", "grey");
-}
+} 
 
 // --- Main PoC Initialization ---
 async function pocMainInit() {
