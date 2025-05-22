@@ -1,9 +1,7 @@
-// === START OF INTEGRATED SCRIPT (dps.js for PoC) ===
-console.log("PoC Script (dps-script.js) loading - Integrating Panorama Demo Logic");
-
 // --- PoC Global Variables and UI Element References ---
 const notifications = document.getElementById('notifications');
 const textOverlay = document.getElementById('text-overlay'); // For our custom red/green barcode boxes
+const barcodeScanCountElement = document.getElementById('barcode-scan-count');
 const resultCtx = document.getElementById('cvs-result').getContext('2d');
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby_7yH-CqjEiRda7NyDJs1_eeD6duZ3y_lRT9T9_ZTzWxkvdCHoNcFhPXYDO9s40f1Ucg/exec"; 
 const apiKey_Vision = null;                                     // <<< SET TO YOUR REAL GOOGLE VISION KEY TO ENABLE OCR, OR KEEP NULL
@@ -29,7 +27,6 @@ function appendNotification(message, color = 'black') {
     el.textContent = message;
     notifications.appendChild(el);
     notifications.scrollTop = notifications.scrollHeight;
-    // console.log(`UI NOTIFICATION (${color}): ${message}`); // Optional: for cleaner console
 }
 
 function checkHTTPS() {
@@ -76,10 +73,10 @@ let ensureCallerCounter = 0; // For tracking calls
 
 function ensureCoreWorkerHelpersInternal(callerName = "Unknown") {
     ensureCallerCounter++; // Keep this for logging
-    console.log(`ensureCoreWorkerHelpersInternal CALLED (${ensureCallerCounter}) by: ${callerName}.`);
-    console.log(`  Current Dynamsoft.Core.worker:`, window.Dynamsoft?.Core?.worker);
-    console.log(`  Current Dynamsoft.Core.mapTaskCallBack:`, window.Dynamsoft?.Core?.mapTaskCallBack);
-    console.log(`  Current Dynamsoft.Core.getNextTaskID:`, window.Dynamsoft?.Core?.getNextTaskID);
+    //console.log(`ensureCoreWorkerHelpersInternal CALLED (${ensureCallerCounter}) by: ${callerName}.`);
+    //console.log(`  Current Dynamsoft.Core.worker:`, window.Dynamsoft?.Core?.worker);
+    //console.log(`  Current Dynamsoft.Core.mapTaskCallBack:`, window.Dynamsoft?.Core?.mapTaskCallBack);
+    //console.log(`  Current Dynamsoft.Core.getNextTaskID:`, window.Dynamsoft?.Core?.getNextTaskID);
 
     // We now know worker is defined after loadWasm.
     // The bundle itself should be setting up mapTaskCallBack and getNextTaskID.
@@ -101,7 +98,7 @@ function ensureCoreWorkerHelpersInternal(callerName = "Unknown") {
         // It might be okay if it's null initially, but should be an object.
         // If this throws, it means the bundle didn't set it up.
         // Dynamsoft.Core.mapTaskCallBack = {}; // Avoid re-assigning if bundle manages it.
-        console.warn(`ensureCoreWorkerHelpersInternal (${ensureCallerCounter}): Dynamsoft.Core.mapTaskCallBack is not an object. Current value:`, Dynamsoft.Core.mapTaskCallBack, "Attempting to initialize.");
+        //console.warn(`ensureCoreWorkerHelpersInternal (${ensureCallerCounter}): Dynamsoft.Core.mapTaskCallBack is not an object. Current value:`, Dynamsoft.Core.mapTaskCallBack, "Attempting to initialize.");
         Dynamsoft.Core.mapTaskCallBack = Dynamsoft.Core.mapTaskCallBack || {}; // Initialize only if truly undefined/null
     }
 
@@ -109,7 +106,7 @@ function ensureCoreWorkerHelpersInternal(callerName = "Unknown") {
         // If this throws, it means the bundle didn't set it up.
         // Dynamsoft.Core._gTaskID = Dynamsoft.Core._gTaskID || 0; // Avoid re-assigning if bundle manages it.
         // Dynamsoft.Core.getNextTaskID = () => { /* ... */ };
-        console.warn(`ensureCoreWorkerHelpersInternal (${ensureCallerCounter}): Dynamsoft.Core.getNextTaskID is not a function. Current value:`, Dynamsoft.Core.getNextTaskID, "Attempting to initialize.");
+        //console.warn(`ensureCoreWorkerHelpersInternal (${ensureCallerCounter}): Dynamsoft.Core.getNextTaskID is not a function. Current value:`, Dynamsoft.Core.getNextTaskID, "Attempting to initialize.");
         if (!Dynamsoft.Core.getNextTaskID) { // Initialize only if truly undefined
              Dynamsoft.Core._gTaskID = Dynamsoft.Core._gTaskID || 0;
              Dynamsoft.Core.getNextTaskID = () => {
@@ -275,7 +272,7 @@ const dps_clean = async (dpsInstanceID) => {
 
 // --- Initialize Panorama/Batch SDK ---
 async function initializePanoramaSDK() {
-    appendNotification("Attempting Panorama SDK initialization...", "grey");
+    //appendNotification("Attempting Panorama SDK initialization...", "grey");
     try {
         if (!window.Dynamsoft || !window.DMCamera) {
             throw new Error("Dynamsoft SDK or DMCamera not loaded. Check HTML script includes.");
@@ -284,39 +281,25 @@ async function initializePanoramaSDK() {
         //ensureCoreWorkerHelpersInternal();
 
         Dynamsoft.Core.CoreModule.engineResourcePaths.rootDirectory = './assets/';
-        appendNotification("Panorama SDK: Engine path set to ./assets/", "grey");
+        //appendNotification("Panorama SDK: Engine path set to ./assets/", "grey");
 
         await Dynamsoft.License.LicenseManager.initLicense(DYNAMSOFT_LICENSE_KEY, true);
-        appendNotification("Panorama SDK: License initialized.", "grey");
+        //appendNotification("Panorama SDK: License initialized.", "grey");
 
         await Dynamsoft.Core.CoreModule.loadWasm(["DBR"]);
-        appendNotification("Panorama SDK: DBR WASM loaded.", "grey");
-
-                // ---- START CRITICAL DIAGNOSTIC ----
-        console.log("------------------------------------------------------");
-        console.log("DIAGNOSTIC: State of Dynamsoft.Core AFTER loadWasm has resolved:");
-        console.log("1. window.Dynamsoft?.Core?.worker:", window.Dynamsoft?.Core?.worker);
-        console.log("2. window.Dynamsoft?.Core?.mapTaskCallBack:", window.Dynamsoft?.Core?.mapTaskCallBack);
-        console.log("3. window.Dynamsoft?.Core?.getNextTaskID:", window.Dynamsoft?.Core?.getNextTaskID);
-        console.log("4. window.Dynamsoft?.Core:", window.Dynamsoft?.Core);
-        console.log("------------------------------------------------------");
-        // ---- END CRITICAL DIAGNOSTIC ----
-
-        // Now attempt to initialize helpers that depend on the worker
-        //ensureCoreWorkerHelpersInternal("initializePanoramaSDK_direct_call"); // This function contains the check for Dynamsoft.Core.worker
-        //appendNotification("Panorama SDK: Core worker helpers ensured.", "grey");
+        //appendNotification("Panorama SDK: DBR WASM loaded.", "grey");
 
         dpsInstanceID = await dps_createInstance();
         if (!dpsInstanceID) throw new Error("Failed to create DPS instance.");
-        appendNotification("Panorama SDK: DPS Instance created: " + dpsInstanceID, "grey");
+        //appendNotification("Panorama SDK: DPS Instance created: " + dpsInstanceID, "grey");
 
         const cvrSettingsText = await fetch('./template_cvr.json').then(r => r.text());
         await dps_initCVRSettings(dpsInstanceID, cvrSettingsText);
-        appendNotification("Panorama SDK: CVR template loaded.", "grey");
+        //appendNotification("Panorama SDK: CVR template loaded.", "grey");
 
         const panoramaSettingsText = await fetch('./template_panorama.json').then(r => r.text());
         await dps_initSettings(dpsInstanceID, panoramaSettingsText);
-        appendNotification("Panorama SDK: Panorama template loaded.", "grey");
+        //appendNotification("Panorama SDK: Panorama template loaded.", "grey");
 
         batchSdkReady = true; // Set our flag
         appendNotification("Panorama SDK: Initialized SUCCESSFULLY.", "blue");
@@ -326,7 +309,7 @@ async function initializePanoramaSDK() {
         appendNotification(`Panorama SDK Init Error: ${error.message || error}`, "red");
         batchSdkReady = false;
     }
-    console.log("initializePanoramaSDK complete. batchSdkReady is:", batchSdkReady);
+    //console.log("initializePanoramaSDK complete. batchSdkReady is:", batchSdkReady);
 }
 
 // --- Process Panorama Landmarks for Barcode Boxes (Red/Green) ---
@@ -339,7 +322,6 @@ function processPanoramaLandmarksForPoC(landmarksArray, cameraInstance) {
             const location = landmark.location; // From demo: landmark.location.points
 
             if (!barcodeValue || !location || !location.points || location.points.length !== 4) {
-                console.warn("PoC: Incomplete landmark data for drawing", landmark);
                 return;
             }
 
@@ -357,6 +339,7 @@ function processPanoramaLandmarksForPoC(landmarksArray, cameraInstance) {
 
             if (!detectedBarcodes.includes(barcodeValue)) {
                 detectedBarcodes.push(barcodeValue);
+                 if (barcodeScanCountElement) barcodeScanCountElement.textContent = detectedBarcodes.length;
                 let nColor = isReported ? "green" : (itemFoundInInventory ? "darkorange" : "red");
                 const formatString = landmark.barcodeFormatString || (landmark.format && Dynamsoft.DBR.EnumBarcodeFormat[landmark.format]) || "Unknown";
                 appendNotification(`Barcode: ${barcodeValue} (${formatString})`, nColor);
@@ -573,12 +556,12 @@ function paintOverlayPoc(landmarksForLiveOverlay) {
 
 // --- Event Listeners Setup ---
 function setupPocEventListeners() {
-    console.log("Setting up PoC event listeners...");
+    //console.log("Setting up PoC event listeners...");
 
     const startButton = document.getElementById('btn-start'); // Using demo's ID
     if (startButton) {
         startButton.addEventListener('click', async () => {
-            appendNotification("'Start/Pause Scan' button CLICKED!", "grey");
+            //appendNotification("'Start/Pause Scan' button CLICKED!", "grey");
             if (!checkHTTPS()) { return; }
             if (!batchSdkReady) {
                 appendNotification("Panorama SDK not ready. Please wait or check console for init errors.", "red");
@@ -621,6 +604,7 @@ function setupPocEventListeners() {
                     startButton.textContent = "Pause Scan";
                     document.getElementById('btn-stop').disabled = false;
                     detectedBarcodes = []; // Reset for new session
+                    if (barcodeScanCountElement) barcodeScanCountElement.textContent = "0";
                     const ocrEl = document.getElementById('ocr-output');
                     if (ocrEl) ocrEl.textContent = 'Scanning for barcodes...';
                     // appendNotification("Scanning started...", "blue"); // Already covered by ocrEl
@@ -638,13 +622,13 @@ function setupPocEventListeners() {
             }
         });
 
-        console.log("Event listener attached to 'btn-start'.");
+        //console.log("Event listener attached to 'btn-start'.");
     } else { console.error("Button 'btn-start' not found!"); }
 
     const stopButton = document.getElementById('btn-stop'); // Using demo's ID
     if (stopButton) {
         stopButton.addEventListener('click', async () => {
-            appendNotification("'Stop Scan' button CLICKED!", "grey");
+            //appendNotification("'Stop Scan' button CLICKED!", "grey");
             isPocScanning = false; // Crucial to stop the loop
 
             const startBtn = document.getElementById('btn-start');
@@ -675,13 +659,13 @@ function setupPocEventListeners() {
              const ocrEl = document.getElementById('ocr-output');
             if (ocrEl) ocrEl.textContent = 'No text detected yet.';
         });
-        console.log("Event listener attached to 'btn-stop'.");
+        //console.log("Event listener attached to 'btn-stop'.");
     } else { console.error("Button 'btn-stop' not found!"); }
 
     const sendButton = document.getElementById('send-to-sheets');
     if (sendButton) {
         sendButton.addEventListener('click', async () => {
-            console.log("'Send to Google Sheets' button CLICKED!");
+            //console.log("'Send to Google Sheets' button CLICKED!");
             const invoiceInputElement = document.getElementById('invoice-id-input');
             if (!invoiceInputElement) { appendNotification("Invoice ID input not found!", "red"); return; }
             const invoiceID = invoiceInputElement.value.trim();
@@ -708,13 +692,13 @@ function setupPocEventListeners() {
                 appendNotification(`Network Error (Send to Sheets): ${error.message}`, "red");
             }
         });
-        console.log("Listener for 'send-to-sheets' attached.");
+        //console.log("Listener for 'send-to-sheets' attached.");
     } else { console.error("'send-to-sheets' button not found!"); }
 
     const verifyButton = document.getElementById('verify-items');
     if (verifyButton) {
         verifyButton.addEventListener('click', async () => {
-            console.log("'Verify Items' button CLICKED!");
+            //console.log("'Verify Items' button CLICKED!");
             const invoiceInputElement = document.getElementById('invoice-id-input');
             if (!invoiceInputElement) { appendNotification("Invoice ID input not found!", "red"); return; }
             const invoiceID = invoiceInputElement.value.trim();
@@ -749,7 +733,7 @@ function setupPocEventListeners() {
                 appendNotification(`Error verifying items: ${error.message}`, "red");
             }
         });
-        console.log("Listener for 'verify-items' attached.");
+        //console.log("Listener for 'verify-items' attached.");
     } else { console.error("'verify-items' button not found!"); }
 }
 
@@ -834,11 +818,9 @@ function highlightNonReportedItemsOnOverlay(nonReportedBarcodes) {
 
 // --- Main PoC Initialization ---
 async function pocMainInit() {
-    console.log("pocMainInit: Script execution started.");
-    console.log("Initial window.Dynamsoft object:", window.Dynamsoft); // <<< ADD THIS
+
     if (window.Dynamsoft && window.Dynamsoft.Core) {
-        console.log("Initial window.Dynamsoft.Core object:", window.Dynamsoft.Core);
-        console.log("Initial window.Dynamsoft.Core.worker:", window.Dynamsoft.Core.worker);
+
     } else {
         console.log("window.Dynamsoft or Dynamsoft.Core not yet defined at pocMainInit start."); 
     }
@@ -849,17 +831,10 @@ async function pocMainInit() {
     setupPocEventListeners(); // Setup listeners for ALL buttons
     await fetchInventoryData();
 
-    appendNotification("PoC: Waiting a moment for SDK to fully load worker...", "grey");
-    console.log("pocMainInit: Delaying Panorama SDK initialization for 500ms...");
-
     setTimeout(async () => { // Introduce a delay
-        console.log("pocMainInit: Attempting Panorama SDK initialization AFTER DELAY.");
-        console.log("window.Dynamsoft.Core.worker (AFTER DELAY, before init call):", window.Dynamsoft?.Core?.worker);
         
     await initializePanoramaSDK(); // Initialize the Panorama SDK
 
-    const ocrEl = document.getElementById('ocr-output');
-    if (ocrEl) ocrEl.textContent = "Ready to scan.";
     appendNotification("App initialized. Click 'Start / Pause Scan' to begin.", "blue");
 
     // Initialize button states
@@ -867,12 +842,11 @@ async function pocMainInit() {
     const stopBtn = document.getElementById('btn-stop');
     if (startBtn) startBtn.disabled = !batchSdkReady;
     if (stopBtn) stopBtn.disabled = true;
-    console.log("pocMainInit: Initialization complete.");
 },500);
 }
 
 // Call the main PoC initialization function when the script loads
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM fully loaded. Starting PoC main initialization...");
+    //console.log("DOM fully loaded. Starting PoC main initialization...");
     pocMainInit();
 });

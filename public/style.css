@@ -1,191 +1,238 @@
-/* style.css */
+/* === Global Resets & Body === */
 body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    background-color: #f5f5f5;
-    color: #333; /* Default text color */
-}
-
-h1 {
-    text-align: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Nicer default font */
+    margin: 0; /* Remove default margin */
+    padding: 0; /* Remove default padding */
+    background-color: #e9ecef; /* Lighter grey background */
     color: #333;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Full viewport height */
 }
 
-h3 {
-    margin-bottom: 10px;
-    color: #555;
+/* === Header === */
+#app-header {
+    background-color: #343a40; /* Dark header */
+    color: #fff;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-#scanner-container,
-#actions,
-#invoice-input-container, /* Added */
-#prescription-text-area {  /* Added */
-    margin: 20px auto; /* Centering blocks */
-    padding: 20px;
+#client-logo {
+    height: 40px; /* Adjusted size */
+    margin-right: 15px;
+}
+
+#app-header h1 {
+    margin: 0;
+    font-size: 1.5em;
+    color: #fff; /* Ensure h1 text is white */
+    text-align: left; /* Align with logo */
+}
+
+/* === Main Content Area === */
+#app-main {
+    flex-grow: 1; /* Allow main to fill available space */
+    width: 100%;
+    max-width: 1200px; /* Max width for content */
+    margin: 20px auto; /* Center main content */
+    padding: 0 15px; /* Padding on sides */
+    box-sizing: border-box;
+}
+
+.app-section {
     background-color: #fff;
+    padding: 20px;
+    margin-bottom: 20px;
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    max-width: 700px; /* Consistent max-width for content blocks */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
-#camera-container {
-    position: relative;
-    width: 100%;
-    max-width: 640px;
-    height: 480px;
-    margin: 0 auto 15px auto; /* Added bottom margin */
-    border: 1px solid #ccc;
-    background-color: #000;
-    overflow: hidden;
+.app-section h2 {
+    margin-top: 0;
+    color: #007bff; /* Blue section titles */
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
 }
 
-#camera {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+/* === Scanner Controls Section === */
+#main-scan-actions {
+    text-align: center;
+    margin-bottom: 15px;
 }
 
-#text-overlay {
+/* === Display Area Section === */
+#display-area-section {
+    display: flex;
+    flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+    gap: 20px; /* Space between camera and results */
+    justify-content: center; /* Center items if space allows */
+}
+
+#live-camera-container,
+#stitched-result-container {
+    flex: 1 1 400px; /* Flex properties: grow, shrink, basis */
+    min-width: 300px; /* Minimum width before wrapping */
+    padding: 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+}
+
+#display-area-section h3 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #495057;
+}
+
+#scanner-ui-container { /* This is where DMCamera appends its video/canvas */
+    position: relative; /* For positioning text-overlay */
+    width: 100%; /* Fill its container */
+    aspect-ratio: 4 / 3; /* Maintain a 4:3 aspect ratio, adjust if needed */
+    max-width: 640px; /* Max width if container is larger */
+    margin: 0 auto; /* Center it */
+    background-color: #222; /* Dark background for camera view */
+    border-radius: 4px;
+    overflow: hidden; /* Important if DMCamera elements try to overflow */
+}
+/* DMCamera's _coreWrapper style is set in JS, ensure it respects this container */
+/* Your JS: cameraViewContainer.appendChild(panoramaCamera._coreWrapper);
+   panoramaCamera._coreWrapper.style has width:100%, height:100% set in JS. This is good. */
+
+#text-overlay { /* This HTML div is for OTHER overlays, not the canvas one */
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    pointer-events: none;
+    pointer-events: none; /* Allows clicks to go through to video/canvas below */
+    z-index: 3; /* Above DMCamera video, below DMCamera's canvas overlay if it has higher z-index */
+}
+/* DMCamera's addCanvas() overlay will likely have its own styles set by DMCamera */
+
+#cvs-result { /* The canvas for stitched results */
+    width: 100%;
+    height: auto; /* Maintain aspect ratio based on its content width/height set in JS */
+    max-height: 400px; /* Limit height to prevent it from becoming too tall */
+    border: 1px solid #ced4da;
+    display: block; /* Removes extra space below */
+    margin: 0 auto; /* Center if its container is wider */
+    background-color: #fff;
 }
 
-/* --- Styles for Invoice Input --- */
+/* === Invoice & Data Actions Section === */
 #invoice-input-container {
-    text-align: center; /* Center label and input */
+    text-align: center;
+    margin-bottom: 15px;
 }
-
-#invoice-input-container label {
-    margin-right: 10px;
-    font-weight: bold;
-}
-
+#invoice-input-container label { margin-right: 10px; font-weight: bold; }
 #invoice-id-input {
-    padding: 8px;
-    border: 1px solid #ccc;
+    padding: 10px;
+    border: 1px solid #ced4da;
     border-radius: 4px;
     font-size: 1em;
-}
-/* --- End of Invoice Input Styles --- */
-
-
-#actions {
-    text-align: center; /* Center buttons */
+    width: 200px;
 }
 
+#data-actions-buttons {
+    text-align: center;
+}
+
+/* === Buttons (General Styling) === */
 button {
-    padding: 10px 20px;
-    font-size: 16px;
-    margin: 5px;
+    padding: 10px 18px;
+    font-size: 1em;
+    margin: 8px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    background-color: #007bff;
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+}
+button:active { transform: scale(0.98); }
+
+#main-scan-actions button,
+#data-actions-buttons button {
+    background-color: #007bff; /* Primary blue */
     color: white;
-    transition: background-color 0.2s ease-in-out; /* Smooth hover effect */
+}
+#main-scan-actions button:hover,
+#data-actions-buttons button:hover {
+    background-color: #0056b3; /* Darker blue */
 }
 
-button:hover:not(:disabled) {
-    background-color: #0056b3;
+#main-scan-actions button#btn-stop {
+    background-color: #dc3545; /* Red for stop */
 }
-
-button:disabled {
-    background-color: #cccccc;
+#main-scan-actions button#btn-stop:hover {
+    background-color: #c82333; /* Darker red */
+}
+#main-scan-actions button:disabled { /* Style for disabled buttons */
+    background-color: #6c757d;
     cursor: not-allowed;
 }
 
-#notifications {
-    margin-top: 20px;
-    padding: 10px;
-    background-color: #e9ecef;
+
+/* === Status & Notifications Section === */
+#scan-status-info { text-align: center; margin-bottom: 10px; font-size: 1.1em; }
+#scan-status-info span { font-weight: bold; color: #007bff; }
+
+#notifications-wrapper {
+    border: 1px solid #dee2e6;
     border-radius: 5px;
-    max-height: 200px;
+    padding: 10px;
+    background-color: #f8f9fa;
+}
+#notifications {
+    min-height: 70px;
+    max-height: 200px; /* Increased max height */
     overflow-y: auto;
+    background-color: #fff; /* White background inside the wrapper */
+    padding: 8px;
+    border-radius: 4px;
 }
-
 #notifications p {
-    margin: 5px 0;
-    word-break: break-word; /* Prevent long strings from breaking layout */
+    margin: 4px 0;
+    font-size: 0.9em;
+    padding: 3px 0;
+    border-bottom: 1px dotted #eee;
+    word-break: break-word;
 }
+#notifications p:last-child { border-bottom: none; }
 
-#prescription-text-area {
-    background-color: #f9f9f9; /* Light grey for this area */
-}
-
-#ocr-output {
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    font-family: monospace; /* Good for pre-formatted text */
-    padding: 5px;
-    border: 1px dashed #ddd;
-    min-height: 50px; /* Ensure it has some height even when empty */
-}
-
-
-/* --- Bounding Box Styles --- */
-.barcode-region {
-    position: absolute;
-    border: 2px solid limegreen;
-    background-color: rgba(50, 205, 50, 0.2);
-    color: black;
-    font-size: 10px;
-    padding: 1px 2px;
-    box-sizing: border-box;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    z-index: 10;
-}
-
-.detected-object-region {
-    position: absolute;
-    border-width: 3px;
-    border-style: solid;
-    /* borderColor is set by JS */
-    background-color: rgba(255, 255, 255, 0.05);
-    box-sizing: border-box;
-    z-index: 11;
-    pointer-events: none;
-}
-
-.object-label {
-    position: absolute;
-    top: -20px;
-    left: 0px;
-    color: white;
-    padding: 2px 5px;
-    font-size: 11px;
-    font-weight: bold;
-    white-space: nowrap;
-    border-radius: 3px;
-    text-shadow: 1px 1px 1px black;
-    /* backgroundColor is set by JS */
-}
-
-.detected-text-region {
-    position: absolute;
-    border: 1px dashed #FF00FF; /* Magenta */
-    background-color: rgba(255, 0, 255, 0.05);
-    box-sizing: border-box;
-    z-index: 9;
-    pointer-events: none;
-}
-
-.text-label {
-    color: #FF00FF; /* Magenta to match border, or choose another */
-    font-size: 10px;
-    font-weight: bold;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* === Footer === */
+#app-footer {
     text-align: center;
-    overflow: hidden;
-    white-space: nowrap;
-    text-shadow: 0 0 2px white;
+    padding: 15px;
+    background-color: #343a40; /* Match header */
+    color: #adb5bd; /* Lighter text for footer */
+    font-size: 0.9em;
+    margin-top: auto; /* Pushes footer to bottom if content is short */
+}
+#app-footer p { margin: 0; }
+
+/* === Responsive Adjustments === */
+@media (max-width: 768px) {
+    #app-header h1 { font-size: 1.3em; }
+    #client-logo { height: 35px; }
+    .app-section { padding: 15px; }
+    #display-area-section { flex-direction: column; align-items: center; }
+    #live-camera-container,
+    #stitched-result-container {
+        flex-basis: auto; /* Allow them to take full width when stacked */
+        width: 100%; /* Take full width of parent */
+    }
+    button { font-size: 0.95em; padding: 8px 15px;}
+}
+
+@media (max-width: 480px) {
+    #app-header { flex-direction: column; text-align: center; }
+    #client-logo { margin-bottom: 10px; margin-right: 0; }
+    #app-header h1 { font-size: 1.2em; }
+    button { width: calc(100% - 16px); /* Full width buttons with margin */ display: block; }
+
 }
