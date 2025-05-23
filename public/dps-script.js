@@ -720,12 +720,13 @@ function setupPocEventListeners() {
             if (!invoiceID) { appendNotification("Please enter an Invoice ID to verify.", "orange"); return; }
             if (!SCRIPT_URL || SCRIPT_URL.startsWith("YOUR_")) { appendNotification("Apps Script URL not configured.", "red"); return; }
             
-            if (detectedBarcodes.length === 0) {
-            appendNotification("No barcodes currently scanned to verify.", "orange");
-            return;
-        }
+           if (!detectedBarcodes || !Array.isArray(detectedBarcodes) || detectedBarcodes.length === 0) {
+                appendNotification("No barcodes currently scanned/available to verify.", "orange");
+                return; 
+            }
 
-            appendNotification(`Verifying items for Invoice ${invoiceID}...`, "blue");
+            appendNotification(`Verifying ${detectedBarcodes.length} currently scanned items for Invoice ${invoiceID}...`, "blue");
+            console.log("CLIENT: About to verify. detectedBarcodes:",JSON.stringify(detectedBarcodes), "Type:", typeof detectedBarcodes, "IsArray:", Array.isArray(detectedBarcodes));
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
@@ -737,9 +738,8 @@ function setupPocEventListeners() {
                 }
                 const resultData = await response.json();
                 lastVerificationResult = resultData; 
-                if (resultData.message) {
-                    appendNotification(resultData.message, "blue"); 
-                }
+                appendNotification(resultData.message, "blue"); 
+
                 let problemsFound = false;
 
                 if (resultData.notInInventory && resultData.notInInventory.length > 0) {
@@ -751,13 +751,18 @@ function setupPocEventListeners() {
                     appendNotification(`WARNING - Items in Inventory but NOT 'Reported=Yes': ${resultData.notReportedButInInventory.join(", ")}`, "orange"); // Warning color
                     problemsFound = true;
                 }
-                if (barcodesToVerify.length > 0 && !problemsFound) {
+                if (detectedBarcodes.length > 0 && !problemsFound) {
                     // This condition implies all items in barcodesToVerify were in resultData.reportedItems
                     appendNotification("All items in the current batch are correctly reported.", "green");
-                } else if (barcodesToVerify.length === 0) {
+                } else if (detectedBarcodes.length === 0) {
                     // This case should ideally be caught before sending to GAS, but good to handle
                     appendNotification("No items were submitted in the current batch for verification.", "grey");
                 }
+
+                const allProblematicItems = [
+                    ...(resultData.notInInventory || []), 
+                    ...(resultData.notReportedButInInventory || [])
+                ];
 
             } catch (error) {
                 console.error("Fetch error in 'Verify Items':", error);
